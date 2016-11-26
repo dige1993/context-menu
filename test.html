@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>网页右键菜单</title>
+<!-- 
+思路：
+1.写出右键点击事件；
+2.写出菜单功能；
+3.关联右键功能和菜单，学习使用定位
+-->
+<style>
+#test {
+	width:200px;
+	height:200px;
+	background-color:green;
+}
+
+ul.context-menu {
+	padding:0;
+	margin:0;
+	display:none;
+	position:absolute; /*只能是absolute或fixed*/
+}
+
+ul.context-menu li {
+	list-style:none;
+	width:100px;
+	height:20px;
+	line-height:20px;
+	text-align:center;
+	border:solid 1px;
+	background-color:#CCC;
+	display:block;
+}
+
+ul.context-menu li:hover {
+	background-color:#C0C0C0;
+	cursor:context-menu;
+}
+</style>
+<script>
+//var t = document.getElementById("test");
+window.onload = function(){
+	var clicked_ele;//全局变量，用于记录被右键单击呼出菜单的元素
+	
+	//去掉默认的contextmenu事件，否则会和右键事件同时出现。
+	document.getElementById("test").oncontextmenu = function(e){
+		e.preventDefault();
+	};
+	
+	document.getElementById("ct").oncontextmenu = function(e){
+		e.preventDefault();
+	};
+	document.getElementById("test").onmousedown = function(e){
+		if(e.button ==2){//右键
+			var x = e.clientX;//获取鼠标单击点的X坐标
+			var y = e.clientY;//获取鼠标单击点的Y坐标
+			//设置菜单的位置
+			document.getElementById("ct").style.left = x + "px";
+			document.getElementById("ct").style.top = y + "px";
+			document.getElementById("ct").style.display = "block";
+			clicked_ele = this;
+		}else if(e.button ==0){ //左键
+			document.getElementById("ct").style.display = "none";
+		}else if(e.button ==1){ //按下滚轮
+			document.getElementById("ct").style.display = "none";
+		}
+	}
+	document.getElementById("test").onblur = function(e){
+		document.getElementById("ct").style.display = "none";
+	}
+	//给每个菜单项添加事件处理
+	var items = document.getElementsByClassName("context-menu-item");
+	for(var i=0; i < items.length; i++){
+		//在定义onclick事件之前，c必须设置取消test元素的onblur事件，否则onclick事件失效，因为click先触发的是test元素的onblur事件，该事件有移除菜单的操作，才会导致后面的代码失效
+		items.item(i).onmouseover = function(e){
+			document.getElementById("test").onblur = undefined;
+		}
+		//鼠标移出菜单时，还是要将test的onblur事件还原
+		items.item(i).onmouseleave = function(e){
+			document.getElementById("test").onblur = function(e){
+				document.getElementById("ct").style.display = "none";
+			}
+		}
+		
+		items.item(i).onclick = function(e){
+			e.stopPropagation();//为避免引起其它错误，阻止冒泡很重要
+			console.log(this.innerHTML + ":" + clicked_ele.innerHTML);
+			document.getElementById("ct").style.display = "none";
+		}
+	}
+}
+
+</script>
+</head>
+
+<body>
+<ul class="context-menu" id="ct">
+<li class="context-menu-item">option1</li>
+<li class="context-menu-item">option2</li>
+<li class="context-menu-item">option3</li>
+</ul>
+
+<div id="test" tabindex="2">我是美腻大方的绿方块</div>
+</body>
+</html>
